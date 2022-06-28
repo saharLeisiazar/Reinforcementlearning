@@ -86,5 +86,17 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
         #       to 0) when a terminal state is reached
         # HINT: make sure to squeeze the output of the critic_network to ensure
         #       that its dimensions match the reward
-
+        for step in range(self.num_grad_steps_per_target_update * self.num_target_updates):
+            
+            if step % self.num_grad_steps_per_target_update == 0:
+                next_critic = self.forward_np(next_ob_no)
+                target_values = reward_n + self.gamma * next_critic * (1- terminal_n)
+                
+            pred = self.forward(ptu.from_numpy(ob_no)) 
+            self.optimizer.zero_grad()
+            loss = self.loss(pred, ptu.from_numpy(target_values))           
+            
+            loss.backward()
+            self.optimizer.step()
+             
         return loss.item()

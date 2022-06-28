@@ -83,10 +83,12 @@ def main():
     parser.add_argument('--no_gpu', '-ngpu', action='store_true')
     parser.add_argument('--which_gpu', '-gpu_id', default=0)
     parser.add_argument('--video_log_freq', type=int, default=-1)
-    parser.add_argument('--scalar_log_freq', type=int, default=10)
+    parser.add_argument('--scalar_log_freq', type=int, default=1)
 
     parser.add_argument('--save_params', action='store_true')
 
+    #parser.add_argument('--save_ext', type=str, default='test')
+    
     args = parser.parse_args()
 
     # convert to dictionary

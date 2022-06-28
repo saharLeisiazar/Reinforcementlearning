@@ -136,8 +136,12 @@ class RL_Trainer(object):
 
         self.best_mean_reward_list = []
         self.mean_reward_list = []
+
         self.itr_list = []
-        
+
+        self.Eval_AveRet = []
+        self.Eval_StdRet = []
+      
         print_period = 1000 if isinstance(self.agent, DQNAgent) else 1
 
         for itr in range(n_iter):
@@ -200,12 +204,12 @@ class RL_Trainer(object):
                 if self.params['save_params']:
                     self.agent.save('{}/agent_itr_{}.pt'.format(self.params['logdir'], itr))
 
-            extention = self.params['save_ext']
-            if itr % 1000 == 0 or n_iter-1:
+            extention = self.params['exp_name']
+            if itr % 1 == 0 or n_iter-1:
                 data = []
                 data.append(self.itr_list)
-                data.append(self.best_mean_reward_list)
-                data.append(self.mean_reward_list)
+                data.append(self.Eval_AveRet)
+                data.append(self.Eval_StdRet)
                 
                 with open('/home/sahar/RL/homework_fall2021/hw3/results/' + extention , "wb") as fp:   
                     #('+batch_value +','+lr_value +')'
@@ -226,7 +230,7 @@ class RL_Trainer(object):
             train_video_paths: paths which also contain videos for visualization purposes
         """
         # TODO: get this from hw1 or hw2
-        paths, envsteps_this_batch = utils.sample_trajectories(self.env, collect_policy , batch_size , self.params['ep_len'])
+        paths, envsteps_this_batch = utils.sample_trajectories(self.env, collect_policy , num_transitions_to_sample , self.params['ep_len'])
 
         # collect more rollouts with the same policy, to be saved as videos in tensorboard
         # note: here, we collect MAX_NVIDEO rollouts, each of length MAX_VIDEO_LEN
@@ -350,6 +354,7 @@ class RL_Trainer(object):
 
             logs["Train_EnvstepsSoFar"] = self.total_envsteps
             logs["TimeSinceStart"] = time.time() - self.start_time
+            logs["Iteration"] = itr + 1
             logs.update(last_log)
 
             if itr == 0:
@@ -361,6 +366,11 @@ class RL_Trainer(object):
                 print('{} : {}'.format(key, value))
                 self.logger.log_scalar(value, key, itr)
 
+                if (itr% 1 == 0 or itr == self.n_iter-1) and key == 'Eval_AverageReturn':
+                    self.itr_list.append(itr+1)
+                    self.Eval_AveRet.append(value)
+                if (itr% 1 == 0 or itr == self.n_iter-1) and key == 'Eval_StdReturn':
+                    self.Eval_StdRet.append(value)
                     
             print('Done logging...\n\n')
 
